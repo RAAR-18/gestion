@@ -1,0 +1,122 @@
+/* -------- FONDO -------- */
+body {
+    margin: 0;
+    font-family: Arial, sans-serif;
+    background-size: cover;
+    background-position: center;
+    transition: background-image 0.6s ease-in-out, background-color 0.4s;
+}
+body.day-mode {
+    background-image: url("https://images.unsplash.com/photo-1507525428034-b723cf961d3e?auto=format&fit=crop&w=1600&q=80");
+}
+body.night-mode {
+    background-image: url("https://images.unsplash.com/photo-1503264116251-35a269479413?auto=format&fit=crop&w=1600&q=80");
+}
+
+/* -------- HEADER -------- */
+header {
+    background-color: rgba(0,0,0,0.6);
+    padding: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+    color: white;
+}
+body.night-mode header {
+    background-color: rgba(20,20,20,0.85);
+}
+.logo {
+    position: absolute;
+    left: 15px;
+}
+.logo img { width: 50px; height: auto; border-radius: 6px; }
+.title { text-align: center; color: white; }
+.title h1 { font-size: 1.4rem; margin: 0; color: #1e90ff; }
+.title h2 { font-size: 0.9rem; margin: 0; }
+
+/* -------- KIOSKOS -------- */
+.kioskos { display:flex; gap:18px; justify-content:center; margin: 20px 0; flex-wrap:wrap; }
+.kiosko-wrap { text-align:center; }
+.kiosko {
+    display: inline-block;
+    width: 80px; height: 80px;
+    margin: 6px; line-height: 80px;
+    border-radius: 50%;
+    font-weight: bold; font-size: 1.1rem;
+    background: #ccc; color: black;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.25);
+    transition: transform 0.2s ease, background 0.2s;
+}
+.kiosko.libre { background: #28a745; color: white; }
+.kiosko.pendiente { background: #ffc107; color: black; }
+.kiosko.en-atencion { background: #17a2b8; color: white; }
+.kiosko.finalizada { background: #6c757d; color: white; }
+.kiosko.spin { animation: spin 1s linear; }
+@keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+
+/* assign buttons */
+.assign { margin-top:8px; display:flex; gap:6px; justify-content:center; }
+.assign-btn {
+    padding:6px 8px; border-radius:6px; border:none; cursor:pointer;
+    background:#2d7cff; color:white; font-weight:bold;
+}
+.assign-btn[disabled] { opacity:0.45; cursor:not-allowed; background:#999; }
+
+/* -------- TABLA -------- */
+.card {
+    width: 85%;
+    margin: 10px auto 25px;
+    background: rgba(255,255,255,0.9);
+    padding: 16px; border-radius: 12px;
+    box-shadow: 0px 4px 12px rgba(0,0,0,0.12);
+    backdrop-filter: blur(3px);
+}
+body.night-mode .card { background: rgba(20,20,20,0.8); color: white; }
+table { width: 100%; border-collapse: collapse; text-align: center; margin-top: 10px; }
+th, td { padding: 10px; border-bottom: 1px solid rgba(0,0,0,0.08); }
+th { background: rgba(0,0,0,0.06); color:#111; }
+body.night-mode th { background: rgba(255,255,255,0.06); color: #eee; }
+
+/* -------- NOTIFICACIONES -------- */
+#notificaciones {
+    position: fixed;
+    top: 80px; right: 20px;
+    display: flex; flex-direction: column;
+    gap: 10px; z-index: 2000;
+}
+.notificacion {
+    padding: 10px 14px; border-radius: 8px;
+    color: white; font-weight: bold;
+    box-shadow: 0 3px 10px rgba(0,0,0,0.3);
+    animation: fadeIn 0.35s ease;
+}
+.notificacion.pendiente { background: #ffc107; color: #222; }
+.notificacion.finalizada { background: #28a745; }
+
+/* -------- BOTONES FLOTANTES (abajo derecha) -------- */
+.floating-buttons {
+    position: fixed; bottom: 18px; right: 18px;
+    display: flex; flex-direction: column;
+    gap: 10px; z-index: 1500;
+}
+.btn {
+    width: 54px; height: 54px;
+    border: none; border-radius: 50%;
+    font-size: 22px; cursor: pointer;
+    background: rgba(0,0,0,0.6); color: white;
+    box-shadow: 0px 6px 14px rgba(0,0,0,0.25);
+    display:flex; align-items:center; justify-content:center;
+}
+.btn:hover { transform: translateY(-3px); }
+
+/* acción final / cancelar en tabla */
+.btn-accion {
+    padding: 6px 10px;
+    border: none; border-radius: 6px; font-weight:bold; cursor:pointer; margin:2px;
+}
+.btn-accion.finalizar { background:#28a745; color:white; }
+.btn-accion.cancelar { background:#dc3545; color:white; }
+
+/* anim */
+@keyframes fadeIn { from { opacity:0; transform:translateX(18px);} to {opacity:1; transform:translateX(0);} }

@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Luruaco • Recepción Rest</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" href="/static/styles.css">
+</head>
+
+<body class="day-mode">
+
+    <header>
+        <div class="logo"><img src="" alt=""></div>
+        <div class="title">
+            <h1>Luruaco • Recepción Rest</h1>
+            <h2>Panel de kioskos</h2>
+        </div>
+    </header>
+
+    <div class="panel card">
+        <div class="kioskos" id="kioskos-container">
+            <!-- Cada kiosko tendrá su círculo y botones para asignar meseros -->
+            <div class="kiosko-wrap">
+                <div class="kiosko" id="kiosko-1">K1</div>
+                <div class="assign">
+                    <button class="assign-btn" data-kiosko="kiosko-1" data-mesero="mesero1">M1</button>
+                    <button class="assign-btn" data-kiosko="kiosko-1" data-mesero="mesero2">M2</button>
+                    <button class="assign-btn" data-kiosko="kiosko-1" data-mesero="mesero3">M3</button>
+                </div>
+            </div>
+
+            <div class="kiosko-wrap">
+                <div class="kiosko" id="kiosko-2">K2</div>
+                <div class="assign">
+                    <button class="assign-btn" data-kiosko="kiosko-2" data-mesero="mesero1">M1</button>
+                    <button class="assign-btn" data-kiosko="kiosko-2" data-mesero="mesero2">M2</button>
+                    <button class="assign-btn" data-kiosko="kiosko-2" data-mesero="mesero3">M3</button>
+                </div>
+            </div>
+
+            <div class="kiosko-wrap">
+                <div class="kiosko" id="kiosko-3">K3</div>
+                <div class="assign">
+                    <button class="assign-btn" data-kiosko="kiosko-3" data-mesero="mesero1">M1</button>
+                    <button class="assign-btn" data-kiosko="kiosko-3" data-mesero="mesero2">M2</button>
+                    <button class="assign-btn" data-kiosko="kiosko-3" data-mesero="mesero3">M3</button>
+                </div>
+            </div>
+
+            <div class="kiosko-wrap">
+                <div class="kiosko" id="kiosko-4">K4</div>
+                <div class="assign">
+                    <button class="assign-btn" data-kiosko="kiosko-4" data-mesero="mesero1">M1</button>
+                    <button class="assign-btn" data-kiosko="kiosko-4" data-mesero="mesero2">M2</button>
+                    <button class="assign-btn" data-kiosko="kiosko-4" data-mesero="mesero3">M3</button>
+                </div>
+            </div>
+        </div>
+
+        <h3 style="margin-top:15px;">Estado de los kioskos</h3>
+
+        <table id="tablaKioskos">
+            <thead>
+                <tr>
+                    <th>Kiosko</th>
+                    <th>Estado</th>
+                    <th>Mesero</th>
+                    <th>Última acción</th>
+                    <th>Acción</th>
+                </tr>
+            </thead>
+            <tbody></tbody>
+        </table>
+    </div>
+
+    <!-- CONTENEDOR DE NOTIFICACIONES -->
+    <div id="notificaciones"></div>
+
+    <!-- BOTONES FLOTANTES (abajo derecha) -->
+    <div class="floating-buttons">
+        <button id="btnModo" class="btn" title="Cambiar modo">🌙</button>
+        <button id="btnExport" class="btn" title="Exportar reporte">📄</button>
+    </div>
+
+    <audio id="ping-sound" preload="auto">
+        <!-- Tone será generado por WebAudio si falla; dejo tag por compatibilidad -->
+    </audio>
+
+    <script src="/static/app.js"></script>
+</body>
+</html>
