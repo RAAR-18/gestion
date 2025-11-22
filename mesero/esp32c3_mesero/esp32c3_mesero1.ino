@@ -5,7 +5,16 @@
 // ========================================
 // PINES ESP32-C3
 // ========================================
-#define LED_PIN 8 
+// LED INTEGRADO (pin 8 - azul)
+#define LED_BUILTIN_PIN 8  // LED azul integrado de la placa ✅
+
+// LED RGB EXTERNO (nuevo módulo)
+#define LED_RED_PIN 4      // LED rojo del módulo RGB
+#define LED_GREEN_PIN 5    // LED verde del módulo RGB
+#define LED_BLUE_PIN 6     // LED azul del módulo RGB
+
+// Motor vibrador
+#define MOTOR_PIN 7        // Pin del motor vibrador
 
 // ========================================
 // CONFIGURACIÓN
@@ -27,9 +36,6 @@ bool notificacionActiva = false;
 String kioskoAsignado = "";
 String timestampAsignacion = "";
 
-unsigned long lastBlinkTime = 0;
-bool ledState = false;
-
 unsigned long lastWifiTry = 0;
 const unsigned long wifiRetryInterval = 10000;
 
@@ -40,6 +46,113 @@ bool wifiConnected = false;
 bool serverConnected = false;
 
 int consecutiveErrors = 0;
+
+// Variables para vibración
+unsigned long vibracionInicio = 0;
+int vibracionCount = 0;
+bool vibracionActiva = false;
+
+// ========================================
+// FUNCIONES LED INTEGRADO (pin 8)
+// ========================================
+void ledBuiltinOn() {
+  digitalWrite(LED_BUILTIN_PIN, LOW);  // Lógica invertida
+}
+
+void ledBuiltinOff() {
+  digitalWrite(LED_BUILTIN_PIN, HIGH);  // Lógica invertida
+}
+
+// ========================================
+// FUNCIONES LED RGB EXTERNO
+// ========================================
+void ledRgbOff() {
+  digitalWrite(LED_RED_PIN, LOW);
+  digitalWrite(LED_GREEN_PIN, LOW);
+  digitalWrite(LED_BLUE_PIN, LOW);
+}
+
+void ledRgbRed() {
+  digitalWrite(LED_RED_PIN, HIGH);
+  digitalWrite(LED_GREEN_PIN, LOW);
+  digitalWrite(LED_BLUE_PIN, LOW);
+}
+
+void ledRgbGreen() {
+  digitalWrite(LED_RED_PIN, LOW);
+  digitalWrite(LED_GREEN_PIN, HIGH);
+  digitalWrite(LED_BLUE_PIN, LOW);
+}
+
+void ledRgbBlue() {
+  digitalWrite(LED_RED_PIN, LOW);
+  digitalWrite(LED_GREEN_PIN, LOW);
+  digitalWrite(LED_BLUE_PIN, HIGH);
+}
+
+void ledRgbYellow() {
+  digitalWrite(LED_RED_PIN, HIGH);
+  digitalWrite(LED_GREEN_PIN, HIGH);
+  digitalWrite(LED_BLUE_PIN, LOW);
+}
+
+void ledRgbPurple() {
+  digitalWrite(LED_RED_PIN, HIGH);
+  digitalWrite(LED_GREEN_PIN, LOW);
+  digitalWrite(LED_BLUE_PIN, HIGH);
+}
+
+void ledRgbCyan() {
+  digitalWrite(LED_RED_PIN, LOW);
+  digitalWrite(LED_GREEN_PIN, HIGH);
+  digitalWrite(LED_BLUE_PIN, HIGH);
+}
+
+void ledRgbWhite() {
+  digitalWrite(LED_RED_PIN, HIGH);
+  digitalWrite(LED_GREEN_PIN, HIGH);
+  digitalWrite(LED_BLUE_PIN, HIGH);
+}
+
+// ========================================
+// FUNCIONES MOTOR
+// ========================================
+void motorOn() {
+  digitalWrite(MOTOR_PIN, HIGH);
+}
+
+void motorOff() {
+  digitalWrite(MOTOR_PIN, LOW);
+}
+
+void iniciarVibracion(int pulsos) {
+  vibracionCount = pulsos;
+  vibracionActiva = true;
+  vibracionInicio = millis();
+}
+
+void handleVibracion() {
+  if (!vibracionActiva) return;
+  
+  unsigned long tiempoActual = millis();
+  unsigned long tiempoTranscurrido = tiempoActual - vibracionInicio;
+  
+  int ciclo = tiempoTranscurrido / 500;
+  
+  if (ciclo >= vibracionCount) {
+    motorOff();
+    vibracionActiva = false;
+    return;
+  }
+  
+  int posicionEnCiclo = tiempoTranscurrido % 500;
+  
+  if (posicionEnCiclo < 300) {
+    motorOn();
+  } else {
+    motorOff();
+  }
+}
 
 // ========================================
 // HELPER
@@ -55,7 +168,7 @@ bool checkWiFi() {
   if (WiFi.status() == WL_CONNECTED) {
     if (!wifiConnected) {
       wifiConnected = true;
-      logln("   WiFi CONECTADO");
+      logln("✅ WiFi CONECTADO");
       logln("   IP: " + WiFi.localIP().toString());
       logln("   RSSI: " + String(WiFi.RSSI()) + " dBm");
     }
@@ -64,13 +177,13 @@ bool checkWiFi() {
   
   if (wifiConnected) {
     wifiConnected = false;
-    logln("  WiFi DESCONECTADO");
+    logln("❌ WiFi DESCONECTADO");
   }
   
   if (millis() - lastWifiTry < wifiRetryInterval) return false;
   
   lastWifiTry = millis();
-  logln("  Reconectando WiFi...");
+  logln("⚠️ Reconectando WiFi...");
   
   WiFi.disconnect();
   delay(100);
@@ -85,13 +198,11 @@ bool checkWiFi() {
   if (WiFi.status() == WL_CONNECTED) {
     Serial.println();
     wifiConnected = true;
-    logln("   WiFi reconectado");
-    logln("   IP: " + WiFi.localIP().toString());
+    logln("✅ WiFi reconectado");
     return true;
   } else {
     Serial.println();
-    logln("   Fallo reconexión WiFi");
-    logln("   Reintentando en 10 segundos...");
+    logln("❌ Fallo reconexión WiFi");
     return false;
   }
 }
@@ -120,7 +231,7 @@ int httpGET(const String &url, String &response) {
   } else {
     consecutiveErrors++;
     if (consecutiveErrors >= 5) {
-      logln("  Muchos errores HTTP");
+      logln("⚠️ Muchos errores HTTP");
       consecutiveErrors = 0;
     }
   }
@@ -155,17 +266,25 @@ void checkNotificacion() {
         kioskoAsignado = kiosko;
         timestampAsignacion = timestamp;
         
-        // ENCENDER LED INMEDIATAMENTE
-        digitalWrite(LED_PIN, HIGH);
+        // ENCENDER LED INTEGRADO (pin 8)
+        ledBuiltinOn();
+        
+        // ENCENDER LED RGB EXTERNO EN AZUL
+        ledRgbBlue();
+        
+        // INICIAR VIBRACIÓN (5 pulsos)
+        iniciarVibracion(5);
         
         logln("════════════════════════════════════════");
-        logln("    ¡NUEVA ASIGNACIÓN - " + MESERO_NOMBRE + "!");
+        logln("  🔔 ¡NUEVA ASIGNACIÓN - " + MESERO_NOMBRE + "!");
         logln("════════════════════════════════════════");
-        logln("     Kiosko: " + kioskoAsignado);
-        logln("     Hora: " + timestampAsignacion);
+        logln("  🏪 Kiosko: " + kioskoAsignado);
+        logln("  🕐 Hora: " + timestampAsignacion);
         logln("════════════════════════════════════════");
-        logln("     Dirígete al kiosko y usa tu RFID");
-        logln("     LED ENCENDIDO");
+        logln("  📍 Dirígete al kiosko y usa tu RFID");
+        logln("  💡 LED integrado (pin 8): ENCENDIDO");
+        logln("  💙 LED RGB externo: AZUL");
+        logln("  📳 Vibración: 5 pulsos");
         logln("════════════════════════════════════════");
         
         if (!serverConnected) {
@@ -177,49 +296,59 @@ void checkNotificacion() {
       if (!tieneNotificacion && notificacionActiva) {
         notificacionActiva = false;
         
-        // APAGAR LED INMEDIATAMENTE
-        digitalWrite(LED_PIN, HIGH);
+        // APAGAR LED INTEGRADO
+        ledBuiltinOff();
+        
+        // CAMBIAR LED RGB A VERDE (confirmación)
+        ledRgbGreen();
+        
+        // VIBRACIÓN CORTA DE CONFIRMACIÓN (2 pulsos)
+        iniciarVibracion(2);
         
         logln("════════════════════════════════════════");
-        logln("    ATENCIÓN CONFIRMADA - " + MESERO_NOMBRE);
+        logln("  ✅ ATENCIÓN CONFIRMADA - " + MESERO_NOMBRE);
         logln("════════════════════════════════════════");
         logln("  Kiosko " + kioskoAsignado + " atendido");
-        logln("  Notificación limpiada");
-        logln("    LED APAGADO");
+        logln("  💡 LED integrado: APAGADO");
+        logln("  💚 LED RGB: VERDE (3 segundos)");
+        logln("  📳 Vibración: 2 pulsos");
         logln("════════════════════════════════════════");
+        
+        // Apagar todo después de 3 segundos
+        delay(3000);
+        ledRgbOff();
         
         kioskoAsignado = "";
         timestampAsignacion = "";
       }
       
-      // Marcar servidor como conectado
       if (!serverConnected) {
         serverConnected = true;
-        logln("  Servidor conectado");
+        logln("✅ Servidor conectado");
       }
       
     } else {
-      logln("  Error parseando JSON: " + String(error.c_str()));
+      logln("⚠️ Error parseando JSON");
     }
   } else if (code > 0) {
     if (serverConnected) {
       serverConnected = false;
-      logln("   Error servidor (HTTP " + String(code) + ")");
+      logln("❌ Error servidor (HTTP " + String(code) + ")");
     }
   }
 }
 
 // ========================================
-// MANEJAR LED
+// MANEJAR LEDS
 // ========================================
 void handleNotification() {
-  if (!notificacionActiva) {
-    digitalWrite(LED_PIN, HIGH);  // LED apagado si no hay notificación
-    return;
+  if (notificacionActiva) {
+    ledBuiltinOn();   // LED integrado encendido
+    ledRgbBlue();     // LED RGB en azul
+  } else if (!vibracionActiva) {
+    ledBuiltinOff();  // LED integrado apagado
+    ledRgbOff();      // LED RGB apagado
   }
-  
-  // LED ENCENDIDO FIJO cuando hay notificación activa
-  digitalWrite(LED_PIN, LOW);
 }
 
 // ========================================
@@ -231,7 +360,7 @@ void printStatus() {
   lastStatusCheck = millis();
   
   logln("─────────────────────────────────────");
-  logln("  ESTADO DEL SISTEMA");
+  logln("📊 ESTADO DEL SISTEMA");
   logln("─────────────────────────────────────");
   logln("  WiFi: " + String(wifiConnected ? "✅ Conectado" : "❌ Desconectado"));
   if (wifiConnected) {
@@ -240,9 +369,14 @@ void printStatus() {
   }
   logln("  Servidor: " + String(serverConnected ? "✅ Conectado" : "❌ Desconectado"));
   logln("  Notificación: " + String(notificacionActiva ? "🔔 Activa" : "🔕 Inactiva"));
-  logln("  LED: " + String(notificacionActiva ? "💡 Encendido" : "⚫ Apagado"));
+  
+  String estadoLEDs = "⚫ Apagados";
+  if (notificacionActiva) estadoLEDs = "💙 Azul (asignación)";
+  else if (vibracionActiva) estadoLEDs = "💚 Verde (confirmación)";
+  logln("  LEDs: " + estadoLEDs);
+  
   if (notificacionActiva) {
-    logln("  Kiosko asignado: " + kioskoAsignado);
+    logln("  Kiosko: " + kioskoAsignado);
   }
   logln("  RAM libre: " + String(ESP.getFreeHeap() / 1024) + " KB");
   logln("─────────────────────────────────────");
@@ -257,41 +391,67 @@ void setup() {
   
   Serial.println("\n\n");
   logln("════════════════════════════════════════");
-  logln("    MANILLA INTELIGENTE");
-  logln("    " + MESERO_NOMBRE);
-  logln("════════════════════════════════════════");
-  logln("   ESP32-C3 - Sistema de Notificaciones");
-  logln("   ID: " + MESERO_ID);
-  logln("   Servidor: " + SERVER_URL);
+  logln("   📱 MANILLA INTELIGENTE COMPLETA");
+  logln("   🔵 " + MESERO_NOMBRE);
   logln("════════════════════════════════════════");
   
-  // Info del chip
-  Serial.print("Chip: ");
-  Serial.print(ESP.getChipModel());
-  Serial.print(" Rev ");
-  Serial.println(ESP.getChipRevision());
-  Serial.print("RAM libre: ");
-  Serial.print(ESP.getFreeHeap() / 1024);
-  Serial.println(" KB");
+  // Configurar LED integrado (pin 8)
+  pinMode(LED_BUILTIN_PIN, OUTPUT);
+  ledBuiltinOff();
+  logln("✅ LED integrado configurado (PIN " + String(LED_BUILTIN_PIN) + ")");
   
-  logln("════════════════════════════════════════");
+  // Configurar LED RGB externo
+  pinMode(LED_RED_PIN, OUTPUT);
+  pinMode(LED_GREEN_PIN, OUTPUT);
+  pinMode(LED_BLUE_PIN, OUTPUT);
+  ledRgbOff();
+  logln("✅ LED RGB externo configurado");
+  logln("   Rojo: PIN " + String(LED_RED_PIN));
+  logln("   Verde: PIN " + String(LED_GREEN_PIN));
+  logln("   Azul: PIN " + String(LED_BLUE_PIN));
   
-  // Configurar LED
-  pinMode(LED_PIN, OUTPUT);
-  digitalWrite(LED_PIN, LOW);
-  logln("  LED configurado (PIN 2)");
+  // Configurar motor
+  pinMode(MOTOR_PIN, OUTPUT);
+  motorOff();
+  logln("✅ Motor vibrador configurado (PIN " + String(MOTOR_PIN) + ")");
   
-  // Test LED - 1 parpadeo = Mesero 1
-  logln("  Test de identificación...");
-  for (int i = 0; i < 1; i++) {
-    digitalWrite(LED_PIN, LOW);
-    delay(300);
-    digitalWrite(LED_PIN, HIGH);
-    delay(300);
-  }
-  logln("  Identificado como " + MESERO_NOMBRE);
+  logln("");
+  logln("🧪 Test de componentes...");
   
-  // Conectar WiFi
+  // Test LED integrado
+  logln("   LED integrado...");
+  ledBuiltinOn();
+  delay(500);
+  ledBuiltinOff();
+  delay(300);
+  
+  // Test LED RGB - Secuencia de colores
+  logln("   LED RGB - Rojo...");
+  ledRgbRed();
+  delay(500);
+  
+  logln("   LED RGB - Verde...");
+  ledRgbGreen();
+  delay(500);
+  
+  logln("   LED RGB - Azul...");
+  ledRgbBlue();
+  delay(500);
+  
+  ledRgbOff();
+  logln("   LEDs OK ✅");
+  
+  // Test motor - 1 vibración = Mesero 1
+  logln("   Motor (1 vibración = Mesero 1)...");
+  motorOn();
+  delay(300);
+  motorOff();
+  delay(300);
+  logln("   Motor OK ✅");
+  
+  logln("✅ Todo el hardware funcionando");
+  
+  // WiFi
   logln("");
   logln("📡 Conectando WiFi: " + String(ssid));
   
@@ -303,45 +463,31 @@ void setup() {
     delay(500);
     Serial.print(".");
   }
-  
   Serial.println();
   
   if (WiFi.status() == WL_CONNECTED) {
     wifiConnected = true;
-    logln("   WiFi conectado!");
+    logln("✅ WiFi conectado!");
     logln("   IP: " + WiFi.localIP().toString());
-    logln("   RSSI: " + String(WiFi.RSSI()) + " dBm");
     
-    // Test servidor
     delay(1000);
-    logln("");
-    logln("🔍 Probando servidor...");
-    
     String testResp;
     int testCode = httpGET(SERVER_URL + "/mesero/" + MESERO_ID + "/notificacion", testResp);
     
     if (testCode == 200) {
       serverConnected = true;
-      logln("   Servidor OK!");
-      logln("   Respuesta: " + testResp);
-    } else {
-      logln("   Servidor no responde (código: " + String(testCode) + ")");
-      logln("   Se reintentará automáticamente");
+      logln("✅ Servidor OK!");
     }
-  } else {
-    logln("   WiFi NO conectado");
-    logln("   Se reintentará cada 10 segundos");
   }
   
   logln("");
   logln("════════════════════════════════════════");
-  logln("    SISTEMA LISTO");
+  logln("   ✅ SISTEMA LISTO");
   logln("════════════════════════════════════════");
-  logln("    Verificando notificaciones cada 2s");
-  logln("    Reintentos WiFi cada 10s");
-  logln("    Reporte de estado cada 30s");
-  logln("    LED azul (PIN 8) indica asignación");
-  logln("    Esperando asignaciones...");
+  logln("   💙 Azul: Nueva asignación");
+  logln("   💚 Verde: Confirmación");
+  logln("   📳 Vibración: Alertas");
+  logln("   🎯 Esperando asignaciones...");
   logln("════════════════════════════════════════");
   logln("");
 }
@@ -351,19 +497,15 @@ void setup() {
 // ========================================
 void loop() {
   
-  // Verificar WiFi
   checkWiFi();
   
-  // Verificar notificaciones cada 2 segundos
   if (millis() - lastCheckTime > checkInterval) {
     lastCheckTime = millis();
     checkNotificacion();
   }
   
-  // Manejar LED (mantener encendido si hay notificación)
   handleNotification();
-  
-  // Mostrar estado periódico (cada 30 segundos)
+  handleVibracion();
   printStatus();
   
   delay(50);
