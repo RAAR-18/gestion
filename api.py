@@ -16,12 +16,11 @@ def json_utf8(data, status=200):
         mimetype="application/json; charset=utf-8"
     )
 
-# Estado inicial de kioskos
+# Estado inicial de kioskos (SOLO 3 KIOSKOS)
 kioskos = {
     "kiosko-1": {"estado": "Libre", "mesero": None, "inicio": None, "fin": None, "ultima_accion": None},
     "kiosko-2": {"estado": "Libre", "mesero": None, "inicio": None, "fin": None, "ultima_accion": None},
     "kiosko-3": {"estado": "Libre", "mesero": None, "inicio": None, "fin": None, "ultima_accion": None},
-    "kiosko-4": {"estado": "Libre", "mesero": None, "inicio": None, "fin": None, "ultima_accion": None},
 }
 
 # Estado de notificaciones para meseros (ESP32-C3)
@@ -280,7 +279,8 @@ if __name__ == "__main__":
     print("="*60)
     print(f"  USA ESTA IP EN TUS ESP32: {local_ip}")
     print("="*60)
-    print(" NUEVAS RUTAS PARA NOTIFICACIONES:")
+    print(" SISTEMA CON 3 KIOSKOS (kiosko-1, kiosko-2, kiosko-3)")
+    print(" RUTAS PARA NOTIFICACIONES:")
     print(f"   GET /mesero/<mesero>/notificacion  - Consultar notificación")
     print(f"   GET /confirmar/<kiosko>/<mesero>   - Confirmar atención RFID")
     print("="*60)
